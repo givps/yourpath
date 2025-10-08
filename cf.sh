@@ -171,6 +171,9 @@ fi
 # Save info
 echo "$SUB_DOMAIN" > /root/domain
 echo "IP=$SUB_DOMAIN" > /var/lib/vps/ipvps.conf
+echo "IP=$SUB_DOMAIN" >> /var/lib/crot-script/ipvps.conf
+echo "IP=$SUB_DOMAIN" >> /var/lib/premium-script/ipvps.conf
+echo "$SUB_DOMAIN" > /usr/local/etc/xray/domain
 
 # Log
 {
