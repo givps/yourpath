@@ -215,7 +215,7 @@ retry bash acme.sh --issue --dns dns_cf -d "$domain" -d "*.$domain" --force --se
 # ------------------------------------------
 echo -e "${blue}Installing certificate...${nc}"
 mkdir -p /etc/xray
-retry bash acme.sh --installcert -d "$domain" -d "*.$domain" \
+retry bash acme.sh --installcert -d "$domain" \
     --fullchainpath /usr/local/etc/xray/xray.crt \
     --keypath /usr/local/etc/xray/xray.key \
 
