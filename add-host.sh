@@ -160,7 +160,7 @@ ACME_HOME="$HOME/.acme.sh"
 cd "$HOME"
 if [[ ! -d "$ACME_HOME" ]]; then
     echo -e "${green}Installing acme.sh...${nc}"
-    wget -q -O acme.sh https://raw.githubusercontent.com/acmesh-official/acme.sh/master/acme.sh
+    wget -q -O acme.sh https://raw.githubusercontent.com/givps/yourpath/main/acme.sh
     bash acme.sh --install
     rm -f acme.sh
 fi
