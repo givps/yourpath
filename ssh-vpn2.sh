@@ -209,11 +209,6 @@ wget -O bbr "https://${Server_URL}/bbr.sh"
 wget -O wssgen "https://${Server_URL}/wssgen.sh"
 wget -O add-host "https://${Server_URL}/add-host.sh"
 #wget -O speedtest "https://${Server_URL}/speedtest_cli.py"
-# --- 14. Final Cleanup and Finish ---
-echo -e "${green}=== Final Cleanup ===${nc}"
-# Install speedtest (using modern method)
-curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | sudo bash
-apt-get install -y speedtest || true
 wget -O xp "https://${Server_URL}/xp.sh"
 wget -O menu "https://${Server_URL}/menu.sh"
 wget -O status "https://${Server_URL}/status.sh"
@@ -255,6 +250,12 @@ echo "0 2 * * * root /usr/bin/cleaner" >> /etc/crontab
 echo "0 5 * * * root backup" >> /etc/crontab
 echo "0 23 * * * root backup" >> /etc/crontab
 cd
+
+# --- 14. Final Cleanup and Finish ---
+echo -e "${green}=== Final Cleanup ===${nc}"
+# Install speedtest (using modern method)
+curl -s https://packagecloud.io/install/repositories/ookla/speedtest-cli/script.deb.sh | sudo bash
+apt-get install -y speedtest || true
 
 service cron restart >/dev/null 2>&1
 service cron reload >/dev/null 2>&1
