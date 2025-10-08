@@ -92,7 +92,7 @@ chmod +x /root/cf.sh
 ./cf.sh
 elif test $dom -eq 2; then
 read -rp "Enter Your Domain : " domen 
-echo $domen > /root/domain
+echo "$domen" | tee /usr/local/etc/xray/domain /root/domain >/dev/null
 else 
 echo "Not Found Argument"
 exit 1
@@ -100,9 +100,9 @@ fi
 echo -e "${GREEN}Done!${NC}"
 sleep 2
 clear
-echo "IP=$host" >> /var/lib/premium-script/ipvps.conf
-echo "IP=$host" >> /var/lib/crot-script/ipvps.conf
-echo "$host" >> /root/domain
+#echo "IP=$host" >> /var/lib/premium-script/ipvps.conf
+#echo "IP=$host" >> /var/lib/crot-script/ipvps.conf
+#echo "$host" >> /root/domain
 #clear
 #echo -e "\e[0;32mREADY FOR INSTALLATION SCRIPT...\e[0m"
 #echo -e ""
