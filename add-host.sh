@@ -30,6 +30,7 @@ rm -f cf.sh
 wget -q -O /root/cf.sh "https://${Server_URL}/cf.sh"
 chmod +x /root/cf.sh
 ./cf.sh
+
 systemctl stop nginx
 systemctl stop xray.service
 systemctl stop xray@none.service
