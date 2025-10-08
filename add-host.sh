@@ -114,9 +114,10 @@ echo -e "KEY: /usr/local/etc/xray/xray.key"
 elif test $dom -eq 2; then
 read -rp "Enter Your Domain : " domen 
 echo $domen > /root/domain
-echo "IP=$dom" > /var/lib/crot-script/ipvps.conf
-echo "IP=$dom" > /var/lib/premium-script/ipvps.conf
-echo "$dom" > /usr/local/etc/xray/domain
+echo "IP=$domen" > /var/lib/crot-script/ipvps.conf
+echo "IP=$domen" > /var/lib/premium-script/ipvps.conf
+echo "$domen" > /usr/local/etc/xray/domain
+
 systemctl stop nginx
 systemctl stop xray.service
 systemctl stop xray@none.service
