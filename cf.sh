@@ -168,7 +168,7 @@ if ! create_or_update "$WILDCARD_DOMAIN" "A" "$IP"; then
 fi
 
 # Save info
-echo "$domain" | tee /usr/local/etc/xray/domain /root/domain >/dev/null
+echo "$SUB_DOMAIN" | tee /usr/local/etc/xray/domain /root/domain >/dev/null
 
 # Log
 {
