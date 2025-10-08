@@ -46,7 +46,6 @@ echo -e "[ ${green}INFO${NC} ] XRAY Core Installation Begin . . . "
 apt update -y
 apt upgrade -y
 apt install socat -y
-apt install python -y
 apt install curl -y
 apt install wget -y
 apt install sed -y
@@ -1378,4 +1377,3 @@ wget -O trial-xtr "https://${Server_URL}/trial-xtr.sh" && chmod +x trial-xtr
 # // OTHER FILES
 echo -e "[ ${green}INFO${NC} ] Downloading Others Files"
 sleep 1
-rm -r xray2.sh
