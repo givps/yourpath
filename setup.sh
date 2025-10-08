@@ -91,6 +91,8 @@ rm -f cf.sh
 wget -q -O /root/cf.sh "https://${Server_URL}/cf.sh"
 chmod +x /root/cf.sh
 ./cf.sh
+
+rm -f cf.sh
 elif test $dom -eq 2; then
 read -rp "Enter Your Domain : " domen 
 echo "$domen" | tee /usr/local/etc/xray/domain /root/domain >/dev/null
@@ -98,8 +100,6 @@ else
 echo "Not Found Argument"
 exit 1
 fi
-
-rm -f cf.sh
 
 echo -e "${GREEN}Done!${NC}"
 sleep 2
