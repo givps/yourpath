@@ -14,8 +14,7 @@ blue='\e[1;34m'
 nc='\e[0m'
 
 #delete old
-rm -f /root/domain
-rm -f /usr/local/etc/xray/domain
+rm -f /usr/local/etc/xray/domain /root/domain
 
 # ==============================
 # Dependencies
@@ -169,11 +168,7 @@ if ! create_or_update "$WILDCARD_DOMAIN" "A" "$IP"; then
 fi
 
 # Save info
-echo "$SUB_DOMAIN" > /root/domain
-echo "IP=$SUB_DOMAIN" > /var/lib/vps/ipvps.conf
-echo "IP=$SUB_DOMAIN" > /var/lib/crot-script/ipvps.conf
-echo "IP=$SUB_DOMAIN" > /var/lib/premium-script/ipvps.conf
-echo "$SUB_DOMAIN" > /usr/local/etc/xray/domain
+domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/null)
 
 # Log
 {
