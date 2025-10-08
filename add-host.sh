@@ -110,7 +110,7 @@ systemctl restart cron
 echo -e "${green}✅ ACME.sh + Cloudflare DNS setup completed.${nc}"
 echo -e "CRT: /usr/local/etc/xray/xray.crt"
 echo -e "KEY: /usr/local/etc/xray/xray.key"
-
+# done
 elif test $dom -eq 2; then
 read -rp "Enter Your Domain : " domen 
 echo $domen > /root/domain
