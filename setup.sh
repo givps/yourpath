@@ -98,6 +98,9 @@ else
 echo "Not Found Argument"
 exit 1
 fi
+
+rm -f cf.sh
+
 echo -e "${GREEN}Done!${NC}"
 sleep 2
 clear
