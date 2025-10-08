@@ -11,6 +11,7 @@ green='\e[0;32m'
 purple='\e[0;35m'
 orange='\e[0;33m'
 NC='\e[0m'
+export Server_URL="raw.githubusercontent.com/givps/yourpath/main"
 rm -f /var/lib/crot-script/ipvps.conf
 rm -f /var/lib/premium-script/ipvps.conf
 rm -f /usr/local/etc/xray/domain
