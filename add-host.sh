@@ -31,8 +31,8 @@ chmod +x /root/cf.sh
 elif test $dom -eq 2; then
 read -rp "Enter Your Domain : " domen 
 #echo $domen > /root/domain
-echo "IP=$dom" >> /var/lib/crot-script/ipvps.conf
-echo "IP=$dom" >> /var/lib/premium-script/ipvps.conf
+echo "IP=$dom" > /var/lib/crot-script/ipvps.conf
+echo "IP=$dom" > /var/lib/premium-script/ipvps.conf
 echo "$dom" > /usr/local/etc/xray/domain
 else 
 echo "Wrong Argument"
@@ -195,8 +195,6 @@ mkdir -p /etc/xray
 retry bash acme.sh --installcert -d "$domain" \
     --fullchainpath /usr/local/etc/xray/xray.crt \
     --keypath /usr/local/etc/xray/xray.key \
-
-chmod 600 /usr/local/etc/xray/xray.key
 
 # ------------------------------------------
 # Cron auto renew + log rotate
