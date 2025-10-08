@@ -219,7 +219,6 @@ mkdir -p /etc/xray
 retry bash acme.sh --installcert -d "$domain" -d "*.$domain" \
     --fullchainpath /usr/local/etc/xray/xray.crt \
     --keypath /usr/local/etc/xray/xray.key \
-    --reloadcmd "systemctl restart xray.service"
 
 # ------------------------------------------
 # Cron auto renew + log rotate
