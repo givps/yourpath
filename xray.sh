@@ -89,166 +89,76 @@ mkdir -p /usr/local/etc/xray
 wget -O /usr/local/bin/xray "https://raw.githubusercontent.com/givps/yourpath/main/xray.linux.64bit"
 chmod +x /usr/local/bin/xray
 
-#delete old
-rm -f /usr/local/etc/xray/xray.crt
-rm -f /usr/local/etc/xray/xray.key
+# Color setup
+red='\e[1;31m'; green='\e[0;32m'; yellow='\e[1;33m'; blue='\e[1;34m'; nc='\e[0m'
 
-# ------------------------------------------
-# Colors
-# ------------------------------------------
-red='\e[1;31m'
-green='\e[0;32m'
-yellow='\e[1;33m'
-blue='\e[1;34m'
-nc='\e[0m'
-
-# ------------------------------------------
 # Log setup
-# ------------------------------------------
 LOG_FILE="/var/log/acme-install.log"
 mkdir -p /var/log
-
-# Auto log rotation (max 1MB, keep 3 backups)
-if [[ -f "$LOG_FILE" ]]; then
-    LOG_SIZE=$(stat -c%s "$LOG_FILE")
-    if (( LOG_SIZE > 1048576 )); then
-        timestamp=$(date +%Y%m%d-%H%M%S)
-        mv "$LOG_FILE" "${LOG_FILE}.${timestamp}.bak"
-        ls -tp /var/log/acme-install.log.*.bak 2>/dev/null | tail -n +4 | xargs -r rm --
-        echo "[$(date)] Log rotated: $LOG_FILE" > "$LOG_FILE"
-    fi
-fi
-
-# Redirect all output to log
+[ -f "$LOG_FILE" ] && [ "$(stat -c%s "$LOG_FILE")" -gt 1048576 ] && {
+  ts=$(date +%Y%m%d-%H%M%S)
+  mv "$LOG_FILE" "$LOG_FILE.$ts.bak"
+  ls -tp /var/log/acme-install.log.*.bak 2>/dev/null | tail -n +4 | xargs -r rm --
+}
 exec > >(tee -a "$LOG_FILE") 2>&1
 
-clear
-echo -e "${green}Starting ACME.sh installation with Cloudflare DNS API...${nc}"
+# Clean old certs
+rm -f /usr/local/etc/xray/{xray.crt,xray.key}
+clear; echo -e "${green}Starting ACME.sh setup...${nc}"
 
-# ------------------------------------------
-# Check domain
-# ------------------------------------------
-if [[ ! -f /root/domain ]]; then
-    echo -e "${red}[ERROR]${nc} File /root/domain not found!"
-    exit 1
-fi
+# Domain check
+domain=$(cat /usr/local/etc/xray/domain 2>/dev/null || cat /root/domain 2>/dev/null)
+[[ -z "$domain" ]] && echo -e "${red}[ERROR] Domain file not found or empty!${nc}" && exit 1
 
-domain=$(cat /root/domain)
-if [[ -z "$domain" ]]; then
-    echo -e "${red}[ERROR]${nc} Domain is empty in /root/domain!"
-    exit 1
-fi
-
-# ------------------------------------------
-# Cloudflare Token (default + manual input)
-# ------------------------------------------
+# Cloudflare token
 DEFAULT_CF_TOKEN="GxfBrA3Ez39MdJo53EV-LiC4dM1-xn5rslR-m5Ru"
-echo -e "${blue}Cloudflare API Token Setup:${nc}"
-read -rp "Enter Cloudflare API Token (press ENTER to use default token): " CF_Token
-if [[ -z "$CF_Token" ]]; then
-    CF_Token="$DEFAULT_CF_TOKEN"
-    echo -e "${green}[INFO]${nc} Using default Cloudflare API Token."
-else
-    echo -e "${green}[INFO]${nc} Using manually entered Cloudflare API Token."
-fi
-export CF_Token
+read -rp "Enter Cloudflare API Token (ENTER for default): " CF_Token
+export CF_Token="${CF_Token:-$DEFAULT_CF_TOKEN}"
 
-# ------------------------------------------
-# Install dependencies
-# ------------------------------------------
+# Dependencies
 echo -e "${blue}Installing dependencies...${nc}"
 apt update -y >/dev/null 2>&1
-command -v curl >/dev/null 2>&1 || apt install -y curl >/dev/null 2>&1
-command -v jq >/dev/null 2>&1 || apt install -y jq >/dev/null 2>&1
+apt install -y curl jq wget cron >/dev/null 2>&1
 
-# ------------------------------------------
 # Retry helper
-# ------------------------------------------
-retry() {
-    local MAX_RETRY=5 COUNT=0
-    local CMD=("$@")
-    until [ $COUNT -ge $MAX_RETRY ]; do
-        if "${CMD[@]}"; then
-            return 0
-        fi
-        COUNT=$((COUNT + 1))
-        echo -e "${yellow}Command failed. Retry $COUNT/$MAX_RETRY...${nc}"
-        sleep 3
-    done
-    echo -e "${red}Command failed after $MAX_RETRY retries.${nc}"
-    exit 1
+retry() { local n=1; until "$@"; do ((n++==5)) && exit 1; echo -e "${yellow}Retry $n...${nc}"; sleep 3; done; }
+
+# Install acme.sh
+ACME_HOME="$HOME/.acme.sh"
+[ ! -d "$ACME_HOME" ] && {
+  echo -e "${green}Installing acme.sh...${nc}"
+  wget -qO - https://raw.githubusercontent.com/givps/yourpath/main/acme.sh | bash
 }
 
-# ------------------------------------------
-# Install acme.sh
-# ------------------------------------------
-ACME_HOME="$HOME/.acme.sh"
-cd "$HOME"
-if [[ ! -d "$ACME_HOME" ]]; then
-    echo -e "${green}Installing acme.sh...${nc}"
-    wget -q -O acme.sh https://raw.githubusercontent.com/givps/yourpath/main/acme.sh
-    bash acme.sh --install
-    rm -f acme.sh
-fi
-cd "$ACME_HOME"
-
-# ------------------------------------------
-# Install Cloudflare DNS hook
-# ------------------------------------------
+# Ensure Cloudflare hook exists
 mkdir -p "$ACME_HOME/dnsapi"
-if [[ ! -f "$ACME_HOME/dnsapi/dns_cf.sh" ]]; then
-    echo -e "${green}Installing Cloudflare DNS API hook...${nc}"
-    wget -O "$ACME_HOME/dnsapi/dns_cf.sh" https://raw.githubusercontent.com/acmesh-official/acme.sh/master/dnsapi/dns_cf.sh
-    chmod +x "$ACME_HOME/dnsapi/dns_cf.sh"
-fi
+[ ! -f "$ACME_HOME/dnsapi/dns_cf.sh" ] && wget -qO "$ACME_HOME/dnsapi/dns_cf.sh" https://raw.githubusercontent.com/acmesh-official/acme.sh/master/dnsapi/dns_cf.sh && chmod +x "$ACME_HOME/dnsapi/dns_cf.sh"
 
-# ------------------------------------------
-# Register Let's Encrypt account
-# ------------------------------------------
-echo -e "${green}Registering ACME account with Let's Encrypt...${nc}"
-retry bash acme.sh --register-account -m ssl@givps.com --server letsencrypt
+# Register account
+echo -e "${green}Registering ACME account...${nc}"
+retry bash "$ACME_HOME/acme.sh" --register-account -m ssl@givps.com --server letsencrypt
 
-# ------------------------------------------
-# Issue wildcard certificate
-# ------------------------------------------
-echo -e "${blue}Issuing wildcard certificate for $domain ...${nc}"
-retry bash acme.sh --issue --dns dns_cf -d "$domain" -d "*.$domain" --force --server letsencrypt
+# Issue certificate
+echo -e "${blue}Issuing wildcard certificate for ${domain}...${nc}"
+retry bash "$ACME_HOME/acme.sh" --issue --dns dns_cf -d "$domain" -d "*.$domain" --force --server letsencrypt
 
-# ------------------------------------------
-# Install certificate to /etc/xray
-# ------------------------------------------
+# Install certs
 echo -e "${blue}Installing certificate...${nc}"
 mkdir -p /etc/xray
-retry bash acme.sh --installcert -d "$domain" \
-    --fullchainpath /usr/local/etc/xray/xray.crt \
-    --keypath /usr/local/etc/xray/xray.key \
+retry bash "$ACME_HOME/acme.sh" --installcert -d "$domain" \
+  --fullchainpath /usr/local/etc/xray/xray.crt \
+  --keypath /usr/local/etc/xray/xray.key
 
-# ------------------------------------------
-# Cron auto renew + log rotate
-# ------------------------------------------
-echo -e "${blue}Adding cron job for auto renew...${nc}"
-CRON_FILE="/etc/cron.d/acme-renew"
-cat > "$CRON_FILE" <<EOF
-# Auto renew ACME.sh every 2 months
+# Auto renew cron
+cat > /etc/cron.d/acme-renew <<EOF
 0 3 1 */2 * root $ACME_HOME/acme.sh --cron --home $ACME_HOME > /var/log/acme-renew.log 2>&1
-# Auto log rotation for renew (max 512KB, keep 2 backups)
-0 4 1 */2 * root bash -c '
-if [[ -f /var/log/acme-renew.log ]]; then
-  size=\$(stat -c%s /var/log/acme-renew.log)
-  if (( size > 524288 )); then
-    ts=\$(date +%Y%m%d-%H%M%S)
-    mv /var/log/acme-renew.log /var/log/acme-renew.log.\$ts.bak
-    ls -tp /var/log/acme-renew.log.*.bak 2>/dev/null | tail -n +3 | xargs -r rm --
-  fi
-fi'
 EOF
-
-chmod 644 "$CRON_FILE"
+chmod 644 /etc/cron.d/acme-renew
 systemctl restart cron
 
-echo -e "${green}✅ ACME.sh Cloudflare setup completed successfully.${nc}"
-echo -e "Certificate: /usr/local/etc/xray/xray.crt"
-echo -e "Key        : /usr/local/etc/xray/xray.key"
+echo -e "${green}✅ ACME.sh + Cloudflare DNS setup completed.${nc}"
+echo -e "CRT: /usr/local/etc/xray/xray.crt"
+echo -e "KEY: /usr/local/etc/xray/xray.key"
 
 # generate certificates
 #mkdir /root/.acme.sh
