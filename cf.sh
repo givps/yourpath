@@ -14,8 +14,8 @@ blue='\e[1;34m'
 nc='\e[0m'
 
 #delete old
-rm -f /usr/local/etc/xray/xray.crt
-rm -f /usr/local/etc/xray/xray.key
+rm -f /root/domain
+rm -f /usr/local/etc/xray/domain
 
 # ==============================
 # Dependencies
