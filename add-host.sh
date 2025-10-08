@@ -30,7 +30,7 @@ chmod +x /root/cf.sh
 ./cf.sh
 elif test $dom -eq 2; then
 read -rp "Enter Your Domain : " domen 
-#echo $domen > /root/domain
+echo $domen > /root/domain
 echo "IP=$dom" > /var/lib/crot-script/ipvps.conf
 echo "IP=$dom" > /var/lib/premium-script/ipvps.conf
 echo "$dom" > /usr/local/etc/xray/domain
