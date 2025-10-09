@@ -1,6 +1,6 @@
 #!/bin/bash
 # =========================================
-# Setup Cloudflare DNS over HTTPS (DoH) on VPS
+# VPN-safe Cloudflare DoH setup on VPS
 # =========================================
 set -euo pipefail
 
@@ -10,7 +10,7 @@ set -euo pipefail
 green='\e[0;32m'; blue='\e[1;34m'; red='\e[1;31m'; nc='\e[0m'
 
 # ----------------------
-# Install cloudflared binary
+# Install cloudflared if missing
 # ----------------------
 if ! command -v cloudflared >/dev/null 2>&1; then
     echo -e "${blue}Installing cloudflared...${nc}"
@@ -41,34 +41,41 @@ systemctl enable cloudflared
 systemctl restart cloudflared
 
 # ----------------------
-# Setup iptables redirect (UDP + TCP port 53 -> 5353)
+# Apply iptables/ip6tables redirect DNS -> 127.0.0.1:5353
 # ----------------------
-echo -e "${blue}Applying iptables redirect...${nc}"
-# IPv4 UDP
+echo -e "${blue}Applying firewall rules for DNS...${nc}"
+
+# IPv4
 iptables -t nat -C OUTPUT -p udp --dport 53 -j REDIRECT --to-ports 5353 2>/dev/null || \
     iptables -t nat -A OUTPUT -p udp --dport 53 -j REDIRECT --to-ports 5353
-
-# IPv4 TCP
 iptables -t nat -C OUTPUT -p tcp --dport 53 -j REDIRECT --to-ports 5353 2>/dev/null || \
     iptables -t nat -A OUTPUT -p tcp --dport 53 -j REDIRECT --to-ports 5353
 
-# IPv6 UDP
+# IPv6
 ip6tables -t nat -C OUTPUT -p udp --dport 53 -j REDIRECT --to-ports 5353 2>/dev/null || \
     ip6tables -t nat -A OUTPUT -p udp --dport 53 -j REDIRECT --to-ports 5353
-
-# IPv6 TCP
 ip6tables -t nat -C OUTPUT -p tcp --dport 53 -j REDIRECT --to-ports 5353 2>/dev/null || \
     ip6tables -t nat -A OUTPUT -p tcp --dport 53 -j REDIRECT --to-ports 5353
 
 # ----------------------
-# Save iptables rules
+# Block any DNS query outside DoH proxy (VPN-safe)
+# ----------------------
+# IPv4
+iptables -t filter -A OUTPUT -p udp --dport 53 ! -d 127.0.0.1 -j REJECT
+iptables -t filter -A OUTPUT -p tcp --dport 53 ! -d 127.0.0.1 -j REJECT
+# IPv6
+ip6tables -t filter -A OUTPUT -p udp --dport 53 ! -d ::1 -j REJECT
+ip6tables -t filter -A OUTPUT -p tcp --dport 53 ! -d ::1 -j REJECT
+
+# ----------------------
+# Save firewall rules
 # ----------------------
 echo -e "${blue}Saving iptables rules...${nc}"
 apt install -y iptables-persistent
 netfilter-persistent save
 
 # ----------------------
-# Force /etc/resolv.conf to use local resolver
+# Force resolver to local DoH
 # ----------------------
 echo -e "${blue}Setting local resolver...${nc}"
 chattr -i /etc/resolv.conf 2>/dev/null || true
@@ -81,4 +88,4 @@ chattr +i /etc/resolv.conf
 echo -e "${green}Testing DNS via DoH...${nc}"
 dig @127.0.0.1 -p 5353 example.com
 
-echo -e "${green}✅ Cloudflared DoH setup completed.${nc}"
+echo -e "${green}✅ VPN-safe Cloudflared DoH setup completed.${nc}"
