@@ -44,10 +44,21 @@ systemctl restart cloudflared
 # Setup iptables redirect (UDP + TCP port 53 -> 5353)
 # ----------------------
 echo -e "${blue}Applying iptables redirect...${nc}"
+# IPv4 UDP
 iptables -t nat -C OUTPUT -p udp --dport 53 -j REDIRECT --to-ports 5353 2>/dev/null || \
     iptables -t nat -A OUTPUT -p udp --dport 53 -j REDIRECT --to-ports 5353
+
+# IPv4 TCP
 iptables -t nat -C OUTPUT -p tcp --dport 53 -j REDIRECT --to-ports 5353 2>/dev/null || \
     iptables -t nat -A OUTPUT -p tcp --dport 53 -j REDIRECT --to-ports 5353
+
+# IPv6 UDP
+ip6tables -t nat -C OUTPUT -p udp --dport 53 -j REDIRECT --to-ports 5353 2>/dev/null || \
+    ip6tables -t nat -A OUTPUT -p udp --dport 53 -j REDIRECT --to-ports 5353
+
+# IPv6 TCP
+ip6tables -t nat -C OUTPUT -p tcp --dport 53 -j REDIRECT --to-ports 5353 2>/dev/null || \
+    ip6tables -t nat -A OUTPUT -p tcp --dport 53 -j REDIRECT --to-ports 5353
 
 # ----------------------
 # Save iptables rules
