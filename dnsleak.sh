@@ -87,6 +87,6 @@ chattr +i /etc/resolv.conf
 # Test
 # ----------------------
 echo -e "${green}Testing DNS via DoH...${nc}"
-dig @127.0.0.1 -p 5353 example.com
+dig @127.0.0.1 -p 5353 github.com
 
 echo -e "${green}✅ VPN-safe Cloudflared DoH setup completed.${nc}"
