@@ -1,6 +1,7 @@
 #!/bin/bash
 # =========================================
 # VPN-safe Cloudflare DoH setup on VPS
+# Install : wget https://raw.githubusercontent.com/givps/yourpath/refs/heads/main/dnsleak.sh && chmod +x dnsleak.sh && ./dnsleak.sh
 # =========================================
 set -euo pipefail
 
